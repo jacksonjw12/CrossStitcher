@@ -1,0 +1,88 @@
+<html>
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+        .controlsContainer {
+            display: flex;
+            flex-direction: column;
+            margin:2rem;
+            padding: 2rem;
+            width: 30%;
+            min-height: 2rem;
+            border: grey dashed 2px;
+        }
+        .previewContainer {
+            margin:2rem;
+            border: grey dashed 2px;
+            width: 30%;
+        }
+        .innerControls {
+            margin-top: 1rem;
+        }
+
+        .imagesContainer {
+            display: flex;
+            flex-direction: row;
+        }
+
+        .topHalf {
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+        }
+
+        .colorBox {
+            display: grid;
+            grid-template-columns: auto auto auto auto auto;
+            margin:2rem;
+            border: grey dashed 2px;
+            width: 40%;
+            max-height: 10rem;
+            overflow-y:scroll;
+
+        }
+        .colorSample {
+            margin: .5rem;
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 50%;
+        }
+
+    </style>
+<body>
+    <div class="topHalf">
+        <div class="controlsContainer">
+            <input type="file" id="inputImage" onchange="selectImage()" />
+            <div class="innerControls">
+                <input type="number" id="quantity" name="quantity" min="1" max="100" value="5">
+                <label for="quantity">: Grain Size (between 1 and 100)</label>
+            </div>
+            <div class="innerControls">
+                <input type="number" id="colors" name="colors" min="1" max="20" value = "4" onchange="controlsUpdate()">
+                <label for="colors">: Number of colors (between 1 and 20)</label>
+    
+            </div>
+        </div>
+
+        <div id="colorBox" class="colorBox">
+
+        </div>
+    </div>
+    
+
+    <div class="imagesContainer">
+        <div class="previewContainer" id="previewContainer">
+            <canvas id="previewCanvas"></canvas>
+
+        </div>
+    </div>
+    
+        
+    
+    
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js"></script>
+<script src="main.js"></script>
+</html>
