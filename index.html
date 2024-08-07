@@ -56,7 +56,7 @@
         <div class="controlsContainer">
             <input type="file" id="inputImage" onchange="selectImage()" />
             <div class="innerControls">
-                <input type="number" id="quantity" name="quantity" min="1" max="100" value="5">
+                <input type="number" id="grain" name="quantity" min="1" max="100" value="5" onchange="controlsUpdate()">
                 <label for="quantity">: Grain Size (between 1 and 100)</label>
             </div>
             <div class="innerControls">
@@ -76,6 +76,9 @@
         <div class="previewContainer" id="previewContainer">
             <canvas id="previewCanvas"></canvas>
 
+        </div>
+        <div class="previewContainer" id="outputContainer1" >
+            <canvas id="outputCanvas1"></canvas>
         </div>
     </div>
     
