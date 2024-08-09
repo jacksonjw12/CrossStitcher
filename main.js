@@ -7,6 +7,51 @@ window.state = {
     palette: undefined,
 }
 
+function debounce(func){
+    var timer;
+    return function(event){
+        if(timer){
+            clearTimeout(timer);
+        } 
+        timer = setTimeout(func,100,event);
+    };
+}
+
+window.addEventListener("resize",debounce(function(e){
+    controlsUpdate();
+}));
+
+const colorCodes = [
+    "",
+    "$",
+    "@",
+    "B",
+    "%",
+    "&",
+    "M",
+    "#",
+    "*",
+    "Z",
+    "0",
+    "Q",
+    "L",
+    "C",
+    "J",
+    "U",
+    "Y",
+    "X",
+    ")",
+    "{",
+    "]",
+    "?",
+    "+",
+    "~",
+    ">",
+    "!",
+    "I",
+    "^",
+]
+
 
 async function toBase64(file) {
     return new Promise((resolve, reject) => {
@@ -164,15 +209,17 @@ function constructGrid() {
     const containerDims = document.getElementById("outputCanvas1").getBoundingClientRect();
    
     if(newWidth >= containerDims.width) {
-        state.grid.ratio = newWidth / (containerDims.width- 20);
-        newWidth = containerDims.width - 20;
+        state.grid.ratio = newWidth / (containerDims.width);
+        newWidth = containerDims.width;
         newHeight /= state.grid.ratio;
         outSize /= state.grid.ratio;
     }
 
+    const grid = []
 
-    for(let c = 0; c< cols; c++) {
-        for(let r = 0; r < rows; r++) {
+    for(let r = 0; r< rows; r++) {
+        const row = []
+        for(let c = 0; c < cols; c++) {
             const xStart = c*size;
             const xEnd = Math.min(xStart + size, w);
             const yStart = r*size;
@@ -184,9 +231,102 @@ function constructGrid() {
             state.grid.ctx.fillStyle = `rgb(${closestColor[0]}, ${closestColor[1]}, ${closestColor[2]})`;
             state.grid.ctx.fillRect(c*outSize, r*outSize, outSize, outSize);
 
+            row.push({
+                color: closestColor
+            })
 
         }
+        grid.push(row);
     }
+    state.gridColors = grid;
+
+    fillSymbolGrid();
+
+}
+
+function colorKey(color) {
+    return `rgb(${color[0]},${color[1]},${color[2]})`;
+}
+
+function getSymbolForPaletteColor(color) {
+    if(!state.palette || !state.paletteSymbols) {
+        return;
+    }
+    const key = colorKey(color);
+    return state.paletteSymbols[key];
+}
+
+function fillSymbolGrid() {
+
+    if(!state.gridColors || !state.palette) {
+        return;
+    }
+
+    const canvas = document.getElementById("finalCanvas");
+    const ctx = canvas.getContext("2d");
+    const containerDims = document.getElementById("finalContainer").getBoundingClientRect();
+    const ratio = containerDims.width / (state.image.width - 20);
+    canvas.width = containerDims.width - 20;
+    canvas.height = state.image.height * ratio;
+
+    // ctx.fillRect(0,0,canvas.width, canvas.height);
+
+
+
+    const gridColors = state.gridColors;
+    const size = canvas.width / gridColors[0].length;
+    ctx.font = `${size-1}pt Courier`
+
+    for(let r = 0; r< gridColors.length; r++) {
+        for(let c = 0; c < gridColors[0].length; c++) {
+
+            if((r == 0 || r == gridColors.length-1) ) {
+                const center = gridColors[0].length / 2;
+                if (center - Math.floor(center) == 0) {
+                    if( c == center || c == center-1) {
+                        ctx.fillStyle = "green"
+                        ctx.fillRect(size*c, size*r, size, size);
+                    }
+                }
+                else {
+                    if( c == Math.floor(center)) {
+                        ctx.fillStyle = "green"
+                        ctx.fillRect(size*c, size*r, size, size);
+                    }
+                }
+                
+            }
+            if((c == 0 || c == gridColors[0].length-1) ) {
+                const center = gridColors.length / 2;
+                if (center - Math.floor(center) == 0) {
+                    if( r == center || r == center-1) {
+                        ctx.fillStyle = "blue"
+                        ctx.fillRect(size*c, size*r, size, size);
+                    }
+                }
+                else {
+                    if( r == Math.floor(center)) {
+                        ctx.fillStyle = "blue"
+                        ctx.fillRect(size*c, size*r, size, size);
+                    }
+                }
+                
+            }
+
+            ctx.fillStyle = colorKey(gridColors[r][c].color)
+            ctx.strokeRect(size*c, size*r, size, size);
+
+            const color = gridColors[r][c].color;
+            const symbol = getSymbolForPaletteColor(color);
+            if(symbol) {
+                ctx.fillText(symbol, size*c, size*r-1, size)
+            }
+            
+        }
+    }
+
+
+    document.getElementById('paletteKey').innerHTML += `<div>ROWS: ${gridColors.length}</div><div>COLS: ${gridColors[0].length} <div>`
 
 
 }
@@ -199,6 +339,12 @@ function componentToHex(c) {
 
 function rgbToHex(rgb) {
     return "#" + componentToHex(rgb[0]) + componentToHex(rgb[1]) + componentToHex(rgb[2]);
+}
+
+function lightnessRGB(rgb) {
+    const max = Math.max(rgb[0], rgb[1], rgb[2]);
+    const min = Math.min(rgb[0], rgb[1], rgb[2]);
+    return (max+min)/(2*255);
 }
 
 function updatePalette() {
@@ -218,6 +364,38 @@ function updatePalette() {
         col.setAttribute('title', `RGB(${color[0]}, ${color[1]}, ${color[2]})\n HEX: ${rgbToHex(color)}`)
         colorBox.appendChild(col);
     }
+
+
+    // Create palette symbols
+    const sortedPalette = [...state.palette].sort((color1, color2) => {
+       const l1 = lightnessRGB(color1);
+       const l2 = lightnessRGB(color2);
+       return l2 - l1;
+    })
+
+    state.paletteSymbols = [];
+
+    const paletteKey = document.getElementById('paletteKey');
+    let inner = `<ul>`
+
+    for(let p = 0; p < sortedPalette.length; p++) {
+        const ck = colorKey(sortedPalette[p])
+
+        state.paletteSymbols[ck] = colorCodes[p];
+
+        if(p == 0) {
+            continue;
+        }
+        inner += `<li><div style='display: inline-block; background-color:${ck}; width:15px; height:15px;'></div> ${colorCodes[p]} | ${ck} | ${rgbToHex(sortedPalette[p])} </li>`
+        inner += `</br>`
+    }
+
+
+    inner += `</ul>`
+    paletteKey.innerHTML = inner;
+
+    
+
 
     
 }

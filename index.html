@@ -2,7 +2,7 @@
     <style>
         body {
             padding: 0;
-            margin: 0;
+            margin: 2rem;
         }
         .controlsContainer {
             display: flex;
@@ -18,8 +18,19 @@
             border: grey dashed 2px;
             width: 30%;
         }
+        .finalContainer {
+            margin:1rem;
+            border: grey dashed 2px;
+            width: 60%;
+        }
         .innerControls {
             margin-top: 1rem;
+        }
+        .paletteKeys {
+            margin:1rem;
+            padding:.25rem;
+            border: grey dashed 2px;
+            width:15%;
         }
 
         .imagesContainer {
@@ -56,7 +67,7 @@
         <div class="controlsContainer">
             <input type="file" id="inputImage" onchange="selectImage()" />
             <div class="innerControls">
-                <input type="number" id="grain" name="quantity" min="1" max="100" value="5" onchange="controlsUpdate()">
+                <input type="number" id="grain" name="quantity" min="5" max="100" value="10" onchange="controlsUpdate()">
                 <label for="quantity">: Grain Size (between 1 and 100)</label>
             </div>
             <div class="innerControls">
@@ -79,6 +90,14 @@
         </div>
         <div class="previewContainer" id="outputContainer1" >
             <canvas id="outputCanvas1"></canvas>
+        </div>
+    </div>
+    <div class="imagesContainer">
+        <div class="finalContainer" id="finalContainer" >
+            <canvas id="finalCanvas"></canvas>
+        </div>
+        <div class="paletteKeys" id="paletteKey">
+            
         </div>
     </div>
     
